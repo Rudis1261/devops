@@ -1,0 +1,65 @@
+#!/bin/bash
+REPOS="$1"
+TXN="$2"
+
+# Make sure that the log message contains some text.
+SVNLOOK=/bin/svnlook
+SVNLOOKOK=1
+
+
+# Exit with a message and a helper
+function exit_with_message()
+{
+  echo 1<&2
+  echo "  ============== ERROR ==============" 1<&2
+  echo "  $1" 1<&2
+  echo 1<&2
+  echo "  - Please provide a #mantis ticket number." 1<&2
+  echo "  - Followed by a comment." 1<&2
+  echo 1<&2
+  echo "  Example Usage:" 1<&2
+  echo '    svn commit -m "#41432 Adding logging to script."' 1<&2
+  exit 1
+}
+
+
+# Exit with a message alone
+function exit_with_error()
+{
+  echo 1<&2
+  echo "  ============== ERROR ==============" 1<&2
+  echo "  $1" 1<&2
+  echo 1<&2 
+  exit 1
+}
+
+
+# We need to ensure that a comment is provided, let check the lenght of the comment
+LOGMSG=$($SVNLOOK log -t "$TXN" "$REPOS" | grep [a-zA-Z0-9] | wc -c)
+
+# Well is it longer than 5 chars?
+if [ "$LOGMSG" -lt 5 ]; then
+
+  # Exit with a message and helper shall we?
+  exit_with_message "Invalid comment provided."
+fi
+
+  
+  
+  
+# Check if the comment contains a # and number
+$SVNLOOK log -t "$TXN" "$REPOS" | \
+grep "[#][0-9][0-9][0-9][0-9]" >/dev/null || SVNLOOKOK=0
+
+# Well does it?
+if [ $SVNLOOKOK = 0 ]; then
+
+  # Exit with a message and helper shall we?
+  exit_with_message "Invalid comment. It didn't contain a mantis ticket number."
+fi
+
+
+
+
+# No objections found, well then exit 0 and allow the commit
+exit 0
